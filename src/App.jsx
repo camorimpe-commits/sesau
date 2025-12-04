@@ -3,11 +3,9 @@ import Papa from "papaparse";
 
 // ================== URLs DAS PLANILHAS ================== //
 
-// CONTRATOS – (já estava funcionando)
 const SHEET_URL_CONTRATOS =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGsk9HAH2ZP9I612PopHCOityrQtkqNAzCTJQkT9B5FqTmbv3ecPODsZJjAN4svMUzi9ILXWc3Oq/pub?output=csv&gid=2116839656";
 
-// PAGAMENTOS – nova_base (link público em CSV que você enviou)
 const SHEET_URL_PAGAMENTOS =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTMAJWBTMJTCZ6isLPAVkN4AUp23myTBn6-FCv-h2Ntu2H1qSaxtKPiO4GIDDbWedCO5-V6XEIgzThJ/pub?output=csv";
 
@@ -16,17 +14,16 @@ const SHEET_URL_PAGAMENTOS =
 // Converte CSV em array de objetos usando PapaParse
 function parseCSV(texto) {
   const resultado = Papa.parse(texto, {
-    header: true, // primeira linha vira cabeçalho
-    skipEmptyLines: true, // ignora linhas em branco
-    dynamicTyping: false, // mantém tudo como string (bom para exibir)
-    transformHeader: (h) => h.trim(), // tira espaços extras dos nomes de coluna
+    header: true,
+    skipEmptyLines: true,
+    dynamicTyping: false,
+    transformHeader: (h) => h.trim(),
   });
 
   if (resultado.errors && resultado.errors.length > 0) {
     console.warn("Erros ao fazer parse do CSV:", resultado.errors);
   }
 
-  // resultado.data já é um array de objetos { Coluna: Valor }
   return resultado.data;
 }
 
@@ -43,19 +40,29 @@ function buscarPorPalavrasChave(obj, palavras) {
   return encontrado ? String(encontrado[1]).trim() : "";
 }
 
+// Converte "dd/mm/aaaa" em Date
+function parseDataBR(str) {
+  if (!str) return null;
+  const match = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!match) return null;
+  const dia = Number(match[1]);
+  const mes = Number(match[2]); // 1–12
+  const ano = Number(match[3]);
+  if (!dia || !mes || !ano) return null;
+  return new Date(ano, mes - 1, dia);
+}
+
 // ================== MAPEAMENTO – CONTRATOS ================== //
 
-// Credor / empresa contratada
 function getCredor(obj) {
   return (
-    obj["ENTIDADE"] || // nome da coluna na planilha
+    obj["ENTIDADE"] ||
     obj["CREDOR"] ||
     obj["EMPRESA CONTRATADA"] ||
     ""
   ).trim();
 }
 
-// Número do contrato
 function getNumeroContrato(obj) {
   return (
     obj["Nº DO CONTRATO"] ||
@@ -65,7 +72,6 @@ function getNumeroContrato(obj) {
   ).trim();
 }
 
-// Executiva (usa palavras-chave)
 function getExecutiva(obj) {
   return buscarPorPalavrasChave(obj, [
     "SECRETARIA EXECUTIVA",
@@ -73,12 +79,10 @@ function getExecutiva(obj) {
   ]);
 }
 
-// Gestor(a) do contrato
 function getGestor(obj) {
   return (obj["GESTOR"] || obj["FISCAL"] || "").trim();
 }
 
-// Início da vigência
 function getInicioVigencia(obj) {
   return (
     obj["INÍCIO DA VIGÊNCIA DO INSTRUMENTO"] ||
@@ -88,7 +92,6 @@ function getInicioVigencia(obj) {
   ).trim();
 }
 
-// Fim da vigência
 function getFimVigencia(obj) {
   return (
     obj["FIM DA VIGÊNCIA DO INSTRUMENTO"] ||
@@ -98,7 +101,6 @@ function getFimVigencia(obj) {
   ).trim();
 }
 
-// Valor total do contrato
 function getValorTotal(obj) {
   return (
     obj["VALOR ANUAL (R$)"] ||
@@ -108,7 +110,6 @@ function getValorTotal(obj) {
   ).trim();
 }
 
-// Valor mensal
 function getValorMensal(obj) {
   return (
     obj["VALOR MENSAL (R$)"] ||
@@ -117,31 +118,24 @@ function getValorMensal(obj) {
   ).trim();
 }
 
-// Termo atual
 function getTermoAtual(obj) {
   return (obj["TERMO ATUAL"] || "").trim();
 }
 
-// Dias para vencimento
 function getDiasParaVencer(obj) {
   return (obj["DIAS"] || "").trim();
 }
 
-// Status da vigência
 function getStatusVigencia(obj) {
   return (obj["STATUS DA VIGÊNCIA"] || "").trim();
 }
 
-// Indica se é o contrato mais recente
 function getMaisRecente(obj) {
   return (obj["É O MAIS RECENTE?"] || "").trim();
 }
 
 // ================== MAPEAMENTO – PAGAMENTOS (nova_base) ================== //
-//
-// Colunas informadas por você:
 // Fonte | Credor | PAGAMENTO | DocumentoOB | Nº Doc Fiscal | Data Pagamento
-//
 
 function getPagFonte(obj) {
   return (obj["Fonte"] || "").trim();
@@ -167,11 +161,26 @@ function getPagDataPagamento(obj) {
   return (obj["Data Pagamento"] || "").trim();
 }
 
+// ================== CONSTANTE – MESES ================== //
+
+const MESES = [
+  { num: 1, label: "Jan" },
+  { num: 2, label: "Fev" },
+  { num: 3, label: "Mar" },
+  { num: 4, label: "Abr" },
+  { num: 5, label: "Mai" },
+  { num: 6, label: "Jun" },
+  { num: 7, label: "Jul" },
+  { num: 8, label: "Ago" },
+  { num: 9, label: "Set" },
+  { num: 10, label: "Out" },
+  { num: 11, label: "Nov" },
+  { num: 12, label: "Dez" },
+];
+
 // ================== COMPONENTE PRINCIPAL ================== //
 
 function App() {
-  console.log("SESAU app carregado");
-
   const [contratos, setContratos] = useState([]);
   const [pagamentos, setPagamentos] = useState([]);
 
@@ -184,8 +193,8 @@ function App() {
   const [totalPagamentos, setTotalPagamentos] = useState(0);
 
   const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
+  const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
 
-  // Carrega dados das duas planilhas ao iniciar
   useEffect(() => {
     async function carregar() {
       try {
@@ -193,34 +202,24 @@ function App() {
         setErroContratos("");
         setErroPagamentos("");
 
-        // --- CONTRATOS --- //
-        console.log("Iniciando fetch da planilha de CONTRATOS...");
+        // CONTRATOS
         const respContratos = await fetch(SHEET_URL_CONTRATOS);
         if (!respContratos.ok) {
           throw new Error("Erro ao buscar dados da planilha de contratos");
         }
         const textoContratos = await respContratos.text();
         const dadosContratos = parseCSV(textoContratos);
-        console.log("Contratos carregados:", dadosContratos.length);
-        if (dadosContratos[0]) {
-          console.log("Primeira linha de contratos:", dadosContratos[0]);
-        }
         setContratos(dadosContratos);
         setTotalContratos(dadosContratos.length);
 
-        // --- PAGAMENTOS --- //
+        // PAGAMENTOS
         try {
-          console.log("Iniciando fetch da planilha de PAGAMENTOS...");
           const respPag = await fetch(SHEET_URL_PAGAMENTOS);
           if (!respPag.ok) {
             throw new Error("Erro ao buscar dados da planilha de pagamentos");
           }
           const textoPag = await respPag.text();
           const dadosPag = parseCSV(textoPag);
-          console.log("Pagamentos carregados:", dadosPag.length);
-          if (dadosPag[0]) {
-            console.log("Primeira linha de pagamentos:", dadosPag[0]);
-          }
           setPagamentos(dadosPag);
           setTotalPagamentos(dadosPag.length);
         } catch (e) {
@@ -242,7 +241,7 @@ function App() {
     carregar();
   }, []);
 
-  // ================== BUSCA / RESULTADOS ================== //
+  // ---------- BUSCA CONTRATOS ---------- //
 
   const resultadosContratos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -255,21 +254,46 @@ function App() {
     });
   }, [busca, contratos]);
 
-  const resultadosPagamentos = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
-    if (!termo) return [];
+  // ---------- BUSCA + ORDEM + FILTRO – PAGAMENTOS ---------- //
 
-    return pagamentos.filter((p) => {
-      const credor = getPagCredor(p).toLowerCase();
-      const docOB = getPagDocumentoOB(p).toLowerCase();
-      const docFiscal = getPagNumeroDocFiscal(p).toLowerCase();
-      return (
-        credor.includes(termo) ||
-        docOB.includes(termo) ||
-        docFiscal.includes(termo)
-      );
+  const resultadosPagamentos = useMemo(() => {
+    // 1) ordena por Data Pagamento (mais recente primeiro)
+    let lista = [...pagamentos].sort((a, b) => {
+      const da = parseDataBR(getPagDataPagamento(a));
+      const db = parseDataBR(getPagDataPagamento(b));
+      if (!da && !db) return 0;
+      if (!da) return 1; // sem data vai para o final
+      if (!db) return -1;
+      return db - da; // desc
     });
-  }, [busca, pagamentos]);
+
+    const termo = busca.trim().toLowerCase();
+
+    // 2) filtro de texto
+    if (termo) {
+      lista = lista.filter((p) => {
+        const credor = getPagCredor(p).toLowerCase();
+        const docOB = getPagDocumentoOB(p).toLowerCase();
+        const docFiscal = getPagNumeroDocFiscal(p).toLowerCase();
+        return (
+          credor.includes(termo) ||
+          docOB.includes(termo) ||
+          docFiscal.includes(termo)
+        );
+      });
+    }
+
+    // 3) filtro por mês
+    if (mesFiltro) {
+      lista = lista.filter((p) => {
+        const data = parseDataBR(getPagDataPagamento(p));
+        if (!data) return false;
+        return data.getMonth() + 1 === mesFiltro; // getMonth 0–11
+      });
+    }
+
+    return lista;
+  }, [pagamentos, busca, mesFiltro]);
 
   const usandoContratos = tipoConsulta === "contratos";
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
@@ -294,7 +318,10 @@ function App() {
         <div style={styles.tabsRow}>
           <button
             type="button"
-            onClick={() => setTipoConsulta("contratos")}
+            onClick={() => {
+              setTipoConsulta("contratos");
+              setMesFiltro(null);
+            }}
             style={{
               ...styles.tabButton,
               ...(usandoContratos ? styles.tabButtonActive : {}),
@@ -304,7 +331,9 @@ function App() {
           </button>
           <button
             type="button"
-            onClick={() => setTipoConsulta("pagamentos")}
+            onClick={() => {
+              setTipoConsulta("pagamentos");
+            }}
             style={{
               ...styles.tabButton,
               ...(!usandoContratos ? styles.tabButtonActive : {}),
@@ -341,6 +370,39 @@ function App() {
               Buscar
             </button>
           </div>
+
+          {/* Filtro por mês – aparece só na aba Pagamentos */}
+          {!usandoContratos && (
+            <div style={styles.monthFilterRow}>
+              <span style={styles.monthFilterLabel}>
+                Filtrar por mês de pagamento:
+              </span>
+              <div style={styles.monthButtonsContainer}>
+                {MESES.map((m) => (
+                  <button
+                    key={m.num}
+                    type="button"
+                    onClick={() =>
+                      setMesFiltro(mesFiltro === m.num ? null : m.num)
+                    }
+                    style={{
+                      ...styles.monthButton,
+                      ...(mesFiltro === m.num ? styles.monthButtonActive : {}),
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setMesFiltro(null)}
+                  style={styles.monthClearButton}
+                >
+                  Limpar
+                </button>
+              </div>
+            </div>
+          )}
 
           {carregando && (
             <p style={styles.info}>
@@ -511,7 +573,7 @@ function App() {
   );
 }
 
-// ================== STYLES (os mesmos que você já usa) ================== //
+// ================== STYLES ================== //
 
 const styles = {
   page: {
@@ -654,6 +716,46 @@ const styles = {
     textAlign: "right",
     fontSize: "0.75rem",
     color: "#94a3b8",
+  },
+  monthFilterRow: {
+    marginTop: "8px",
+    marginBottom: "8px",
+  },
+  monthFilterLabel: {
+    fontSize: "0.85rem",
+    color: "#4b5563",
+    marginRight: "8px",
+    display: "block",
+    marginBottom: "4px",
+  },
+  monthButtonsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px",
+  },
+  monthButton: {
+    borderRadius: "999px",
+    border: "1px solid #cbd5e1",
+    backgroundColor: "#ffffff",
+    padding: "4px 10px",
+    fontSize: "0.8rem",
+    cursor: "pointer",
+    color: "#4b5563",
+  },
+  monthButtonActive: {
+    backgroundColor: "#2563eb",
+    color: "#ffffff",
+    borderColor: "#2563eb",
+  },
+  monthClearButton: {
+    borderRadius: "999px",
+    border: "none",
+    backgroundColor: "#e5e7eb",
+    padding: "4px 10px",
+    fontSize: "0.8rem",
+    cursor: "pointer",
+    color: "#374151",
+    marginLeft: "4px",
   },
 };
 
