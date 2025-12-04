@@ -7,33 +7,21 @@ import Papa from "papaparse";
 const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGsk9HAH2ZP9I612PopHCOityrQtkqNAzCTJQkT9B5FqTmbv3ecPODsZJjAN4svMUzi9ILXWc3Oq/pub?output=csv&gid=2116839656";
 
-// Converte CSV em array de objetos
+// Converte CSV em array de objetos usando PapaParse
 function parseCSV(texto) {
-  const linhas = texto.trim().split("\n");
-  if (linhas.length < 2) return [];
-
-  // Detecta separador (vírgula ou ponto e vírgula)
-  const separador =
-    (linhas[0].match(/;/g) || []).length > (linhas[0].match(/,/g) || []).length
-      ? ";"
-      : ",";
-
-  const cabecalhos = linhas[0].split(separador).map((h) => h.trim());
-
-  const dados = linhas.slice(1).map((linha) => {
-    if (!linha.trim()) return null;
-
-    const valores = linha.split(separador);
-    const obj = {};
-
-    cabecalhos.forEach((cab, idx) => {
-      obj[cab] = (valores[idx] || "").trim();
-    });
-
-    return obj;
+  const resultado = Papa.parse(texto, {
+    header: true,          // primeira linha vira cabeçalho
+    skipEmptyLines: true,  // ignora linhas em branco
+    dynamicTyping: false,  // mantém tudo como string (bom para exibir)
+    transformHeader: (h) => h.trim(), // tira espaços extras dos nomes de coluna
   });
 
-  return dados.filter(Boolean);
+  if (resultado.errors && resultado.errors.length > 0) {
+    console.warn("Erros ao fazer parse do CSV:", resultado.errors);
+  }
+
+  // resultado.data já é um array de objetos { Coluna: Valor }
+  return resultado.data;
 }
 
 // Procura um valor pela "cara" do nome da coluna (palavras-chave)
