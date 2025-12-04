@@ -1,18 +1,24 @@
 import { useEffect, useState, useMemo } from "react";
-
 import Papa from "papaparse";
 
+// ================== URLs DAS PLANILHAS ================== //
 
-// URL pública da planilha da SESAU (formato CSV)
-const SHEET_URL =
+// CONTRATOS – (já estava funcionando)
+const SHEET_URL_CONTRATOS =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0KGsk9HAH2ZP9I612PopHCOityrQtkqNAzCTJQkT9B5FqTmbv3ecPODsZJjAN4svMUzi9ILXWc3Oq/pub?output=csv&gid=2116839656";
+
+// PAGAMENTOS – nova_base (link público em CSV que você enviou)
+const SHEET_URL_PAGAMENTOS =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTMAJWBTMJTCZ6isLPAVkN4AUp23myTBn6-FCv-h2Ntu2H1qSaxtKPiO4GIDDbWedCO5-V6XEIgzThJ/pub?output=csv";
+
+// ================== FUNÇÕES AUXILIARES ================== //
 
 // Converte CSV em array de objetos usando PapaParse
 function parseCSV(texto) {
   const resultado = Papa.parse(texto, {
-    header: true,          // primeira linha vira cabeçalho
-    skipEmptyLines: true,  // ignora linhas em branco
-    dynamicTyping: false,  // mantém tudo como string (bom para exibir)
+    header: true, // primeira linha vira cabeçalho
+    skipEmptyLines: true, // ignora linhas em branco
+    dynamicTyping: false, // mantém tudo como string (bom para exibir)
     transformHeader: (h) => h.trim(), // tira espaços extras dos nomes de coluna
   });
 
@@ -37,7 +43,7 @@ function buscarPorPalavrasChave(obj, palavras) {
   return encontrado ? String(encontrado[1]).trim() : "";
 }
 
-// === FUNÇÕES DE MAPEAMENTO DAS COLUNAS DA PLANILHA ===
+// ================== MAPEAMENTO – CONTRATOS ================== //
 
 // Credor / empresa contratada
 function getCredor(obj) {
@@ -54,30 +60,30 @@ function getNumeroContrato(obj) {
   return (
     obj["Nº DO CONTRATO"] ||
     obj["NUMERO DO CONTRATO"] ||
+    obj["N CONTRATO"] ||
     ""
   ).trim();
 }
 
-// Executiva (usa palavras-chave porque o cabeçalho é grande)
+// Executiva (usa palavras-chave)
 function getExecutiva(obj) {
-  // reutiliza a função genérica de busca
-  return buscarPorPalavrasChave(obj, ["SECRETARIA EXECUTIVA", "SECRETARIA EXECUTIVA"]);
+  return buscarPorPalavrasChave(obj, [
+    "SECRETARIA EXECUTIVA",
+    "EXECUTIVA GERENCIADORA",
+  ]);
 }
 
 // Gestor(a) do contrato
 function getGestor(obj) {
-  return (
-    obj["GESTOR"] ||
-    obj["FISCAL"] || // se em algum caso vier no campo FISCAL
-    ""
-  ).trim();
+  return (obj["GESTOR"] || obj["FISCAL"] || "").trim();
 }
 
 // Início da vigência
 function getInicioVigencia(obj) {
   return (
     obj["INÍCIO DA VIGÊNCIA DO INSTRUMENTO"] ||
-    obj["INICIO DA VIGÊNCIA DO INSTRUMENTO"] || // variação sem acento, se existir
+    obj["INICIO DA VIGÊNCIA DO INSTRUMENTO"] ||
+    obj["INICIO VIGENCIA"] ||
     ""
   ).trim();
 }
@@ -87,15 +93,17 @@ function getFimVigencia(obj) {
   return (
     obj["FIM DA VIGÊNCIA DO INSTRUMENTO"] ||
     obj["FIM DA VIGENCIA DO INSTRUMENTO"] ||
+    obj["FIM VIGENCIA"] ||
     ""
   ).trim();
 }
 
-// Valor total do contrato (vou considerar o valor anual como total)
+// Valor total do contrato
 function getValorTotal(obj) {
   return (
     obj["VALOR ANUAL (R$)"] ||
     obj["VALOR GLOBAL (R$)"] ||
+    obj["VALOR TOTAL (R$)"] ||
     ""
   ).trim();
 }
@@ -119,7 +127,7 @@ function getDiasParaVencer(obj) {
   return (obj["DIAS"] || "").trim();
 }
 
-// Status da vigência (AGORA só pega a coluna certa, não mais a de formalização)
+// Status da vigência
 function getStatusVigencia(obj) {
   return (obj["STATUS DA VIGÊNCIA"] || "").trim();
 }
@@ -129,43 +137,101 @@ function getMaisRecente(obj) {
   return (obj["É O MAIS RECENTE?"] || "").trim();
 }
 
+// ================== MAPEAMENTO – PAGAMENTOS (nova_base) ================== //
+//
+// Colunas informadas por você:
+// Fonte | Credor | PAGAMENTO | DocumentoOB | Nº Doc Fiscal | Data Pagamento
+//
 
+function getPagFonte(obj) {
+  return (obj["Fonte"] || "").trim();
+}
+
+function getPagCredor(obj) {
+  return (obj["Credor"] || "").trim();
+}
+
+function getPagValorPagamento(obj) {
+  return (obj["PAGAMENTO"] || "").trim();
+}
+
+function getPagDocumentoOB(obj) {
+  return (obj["DocumentoOB"] || "").trim();
+}
+
+function getPagNumeroDocFiscal(obj) {
+  return (obj["Nº Doc Fiscal"] || obj["Nº Doc Fiscal "] || "").trim();
+}
+
+function getPagDataPagamento(obj) {
+  return (obj["Data Pagamento"] || "").trim();
+}
+
+// ================== COMPONENTE PRINCIPAL ================== //
 
 function App() {
   console.log("SESAU app carregado");
 
   const [contratos, setContratos] = useState([]);
+  const [pagamentos, setPagamentos] = useState([]);
+
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState("");
+  const [erroContratos, setErroContratos] = useState("");
+  const [erroPagamentos, setErroPagamentos] = useState("");
+
   const [busca, setBusca] = useState("");
   const [totalContratos, setTotalContratos] = useState(0);
+  const [totalPagamentos, setTotalPagamentos] = useState(0);
 
-  // Carrega dados da planilha ao iniciar
+  const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
+
+  // Carrega dados das duas planilhas ao iniciar
   useEffect(() => {
     async function carregar() {
       try {
         setCarregando(true);
-        setErro("");
+        setErroContratos("");
+        setErroPagamentos("");
 
-        console.log("Iniciando fetch da planilha SESAU...");
-        const resp = await fetch(SHEET_URL);
-        if (!resp.ok) {
-          throw new Error("Erro ao buscar dados da planilha");
+        // --- CONTRATOS --- //
+        console.log("Iniciando fetch da planilha de CONTRATOS...");
+        const respContratos = await fetch(SHEET_URL_CONTRATOS);
+        if (!respContratos.ok) {
+          throw new Error("Erro ao buscar dados da planilha de contratos");
         }
-
-        const texto = await resp.text();
-        const dados = parseCSV(texto);
-
-        console.log("Contratos carregados:", dados.length);
-        if (dados[0]) {
-          console.log("Primeira linha de exemplo:", dados[0]);
+        const textoContratos = await respContratos.text();
+        const dadosContratos = parseCSV(textoContratos);
+        console.log("Contratos carregados:", dadosContratos.length);
+        if (dadosContratos[0]) {
+          console.log("Primeira linha de contratos:", dadosContratos[0]);
         }
+        setContratos(dadosContratos);
+        setTotalContratos(dadosContratos.length);
 
-        setContratos(dados);
-        setTotalContratos(dados.length);
+        // --- PAGAMENTOS --- //
+        try {
+          console.log("Iniciando fetch da planilha de PAGAMENTOS...");
+          const respPag = await fetch(SHEET_URL_PAGAMENTOS);
+          if (!respPag.ok) {
+            throw new Error("Erro ao buscar dados da planilha de pagamentos");
+          }
+          const textoPag = await respPag.text();
+          const dadosPag = parseCSV(textoPag);
+          console.log("Pagamentos carregados:", dadosPag.length);
+          if (dadosPag[0]) {
+            console.log("Primeira linha de pagamentos:", dadosPag[0]);
+          }
+          setPagamentos(dadosPag);
+          setTotalPagamentos(dadosPag.length);
+        } catch (e) {
+          console.error("Erro ao carregar PAGAMENTOS:", e);
+          setErroPagamentos(
+            "Não foi possível carregar os pagamentos. Verifique a planilha 'nova_base'."
+          );
+        }
       } catch (e) {
-        console.error("Erro ao carregar planilha:", e);
-        setErro(
+        console.error("Erro ao carregar CONTRATOS:", e);
+        setErroContratos(
           "Não foi possível carregar os contratos. Verifique a planilha ou tente novamente mais tarde."
         );
       } finally {
@@ -176,8 +242,9 @@ function App() {
     carregar();
   }, []);
 
-  // Filtra contratos pela busca (credor ou número do contrato)
-  const resultados = useMemo(() => {
+  // ================== BUSCA / RESULTADOS ================== //
+
+  const resultadosContratos = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     if (!termo) return [];
 
@@ -188,26 +255,80 @@ function App() {
     });
   }, [busca, contratos]);
 
+  const resultadosPagamentos = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return [];
+
+    return pagamentos.filter((p) => {
+      const credor = getPagCredor(p).toLowerCase();
+      const docOB = getPagDocumentoOB(p).toLowerCase();
+      const docFiscal = getPagNumeroDocFiscal(p).toLowerCase();
+      return (
+        credor.includes(termo) ||
+        docOB.includes(termo) ||
+        docFiscal.includes(termo)
+      );
+    });
+  }, [busca, pagamentos]);
+
+  const usandoContratos = tipoConsulta === "contratos";
+  const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
+  const erro = usandoContratos ? erroContratos : erroPagamentos;
+  const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
+
+  // ================== RENDER ================== //
+
   return (
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={styles.header}>
           <h1 style={styles.titulo}>SESAU – Consulta de Contratos Públicos</h1>
           <p style={styles.subtitulo}>
-            Digite o número do contrato ou o nome da entidade/empresa para consultar
-            informações oficiais de contratos da Secretaria de Saúde do Recife.
+            Digite o número do contrato, documento ou o nome da
+            entidade/empresa para consultar informações oficiais de contratos e
+            pagamentos da Secretaria de Saúde do Recife.
           </p>
         </header>
 
+        {/* Abas de tipo de consulta */}
+        <div style={styles.tabsRow}>
+          <button
+            type="button"
+            onClick={() => setTipoConsulta("contratos")}
+            style={{
+              ...styles.tabButton,
+              ...(usandoContratos ? styles.tabButtonActive : {}),
+            }}
+          >
+            Contratos
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipoConsulta("pagamentos")}
+            style={{
+              ...styles.tabButton,
+              ...(!usandoContratos ? styles.tabButtonActive : {}),
+            }}
+          >
+            Pagamentos
+          </button>
+        </div>
+
         <section style={styles.formSection}>
           <label htmlFor="busca" style={styles.label}>
-            Número do contrato ou nome da empresa:
+            {usandoContratos
+              ? "Número do contrato ou nome da empresa:"
+              : "Nome da empresa, Documento OB ou Nº Doc Fiscal:"}
           </label>
           <div style={styles.formRow}>
             <input
               id="busca"
               type="text"
-              placeholder="Ex: 2025-001 ou ADLIM"
+              placeholder={
+                usandoContratos
+                  ? "Ex: 2025-001 ou ADLIM"
+                  : "Ex: ADLIM, Nº OB ou Nº Nota Fiscal"
+              }
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               style={styles.input}
@@ -221,20 +342,30 @@ function App() {
             </button>
           </div>
 
-          {carregando && <p style={styles.info}>Carregando contratos...</p>}
-          {!carregando && !erro && (
+          {carregando && (
             <p style={styles.info}>
-              Contratos carregados da planilha: <strong>{totalContratos}</strong>
+              Carregando {usandoContratos ? "contratos" : "pagamentos"}...
             </p>
           )}
+
+          {!carregando && !erro && (
+            <p style={styles.info}>
+              {usandoContratos ? "Contratos" : "Registros de pagamento"}{" "}
+              carregados da planilha: <strong>{totalRegistros}</strong>
+            </p>
+          )}
+
           {erro && <p style={styles.erro}>{erro}</p>}
+
           {!carregando && !erro && busca && resultados.length === 0 && (
-            <p style={styles.info}>Nenhum resultado encontrado para a busca informada.</p>
+            <p style={styles.info}>
+              Nenhum resultado encontrado para a busca informada.
+            </p>
           )}
         </section>
 
-        {/* Resultados */}
-        {resultados.length > 0 && (
+        {/* Resultados – CONTRATOS */}
+        {resultados.length > 0 && usandoContratos && (
           <section style={styles.resultSection}>
             <h2 style={styles.resultTitle}>
               Resultados ({resultados.length} contrato
@@ -259,7 +390,9 @@ function App() {
                 return (
                   <article key={idx} style={styles.card}>
                     <div style={styles.cardHeader}>
-                      <h3 style={styles.cardTitle}>{credor || "Credor não informado"}</h3>
+                      <h3 style={styles.cardTitle}>
+                        {credor || "Credor não informado"}
+                      </h3>
                       <p style={styles.cardSubtitle}>
                         Contrato: <strong>{numeroContrato || "—"}</strong>
                       </p>
@@ -314,10 +447,63 @@ function App() {
           </section>
         )}
 
+        {/* Resultados – PAGAMENTOS */}
+        {resultados.length > 0 && !usandoContratos && (
+          <section style={styles.resultSection}>
+            <h2 style={styles.resultTitle}>
+              Resultados ({resultados.length} pagamento
+              {resultados.length > 1 ? "s" : ""})
+            </h2>
+
+            <div style={styles.cardGrid}>
+              {resultados.map((p, idx) => {
+                const fonte = getPagFonte(p);
+                const credor = getPagCredor(p);
+                const valor = getPagValorPagamento(p);
+                const docOB = getPagDocumentoOB(p);
+                const docFiscal = getPagNumeroDocFiscal(p);
+                const data = getPagDataPagamento(p);
+
+                return (
+                  <article key={idx} style={styles.card}>
+                    <div style={styles.cardHeader}>
+                      <h3 style={styles.cardTitle}>
+                        {credor || "Credor não informado"}
+                      </h3>
+                      <p style={styles.cardSubtitle}>
+                        Documento OB: <strong>{docOB || "—"}</strong>
+                      </p>
+                    </div>
+
+                    <dl style={styles.dl}>
+                      <div style={styles.dlRow}>
+                        <dt>Fonte</dt>
+                        <dd>{fonte || "—"}</dd>
+                      </div>
+                      <div style={styles.dlRow}>
+                        <dt>Valor do pagamento</dt>
+                        <dd>{valor || "—"}</dd>
+                      </div>
+                      <div style={styles.dlRow}>
+                        <dt>Nº Doc Fiscal</dt>
+                        <dd>{docFiscal || "—"}</dd>
+                      </div>
+                      <div style={styles.dlRow}>
+                        <dt>Data do pagamento</dt>
+                        <dd>{data || "—"}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <footer style={styles.footer}>
           <small>
-            SESAU Recife – Consulta pública de contratos · Dados provenientes de planilha
-            oficial da Secretaria de Saúde.
+            SESAU Recife – Consulta pública de contratos e pagamentos · Dados
+            provenientes de planilhas oficiais da Secretaria de Saúde.
           </small>
         </footer>
       </div>
@@ -325,12 +511,15 @@ function App() {
   );
 }
 
+// ================== STYLES (os mesmos que você já usa) ================== //
+
 const styles = {
   page: {
     minHeight: "100vh",
     backgroundColor: "#f5f7fb",
     padding: "32px 16px",
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily:
+      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
   container: {
     maxWidth: "1100px",
@@ -352,6 +541,28 @@ const styles = {
     color: "#475569",
     fontSize: "0.95rem",
     maxWidth: "720px",
+  },
+  tabsRow: {
+    display: "inline-flex",
+    borderRadius: "999px",
+    backgroundColor: "#e5edff",
+    padding: "4px",
+    marginBottom: "16px",
+  },
+  tabButton: {
+    border: "none",
+    background: "transparent",
+    padding: "6px 16px",
+    borderRadius: "999px",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    color: "#4b5563",
+  },
+  tabButtonActive: {
+    backgroundColor: "#2563eb",
+    color: "#ffffff",
+    fontWeight: 600,
+    boxShadow: "0 4px 10px rgba(37, 99, 235, 0.4)",
   },
   formSection: {
     marginBottom: "24px",
@@ -447,5 +658,3 @@ const styles = {
 };
 
 export default App;
-
-
