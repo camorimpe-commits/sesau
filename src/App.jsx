@@ -544,7 +544,7 @@ function App() {
                       </div>
                       <div style={styles.dlRow}>
                         <dt>Valor do pagamento</dt>
-                        <dd>{valor || "—"}</dd>
+                        <dd>{valor ? <span className="valuePill">{valor}</span> : "—"}</dd>
                       </div>
                       <div style={styles.dlRow}>
                         <dt>Nº Doc Fiscal</dt>
