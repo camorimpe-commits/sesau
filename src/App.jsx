@@ -575,187 +575,264 @@ function App() {
 
 // ================== STYLES ================== //
 
+// ================== STYLES (ATUALIZADO) ================== //
+
+const theme = {
+  bg: "#F8FAFC",          // fundo da página (mais leve)
+  surface: "#FFFFFF",     // superfície (container/cards)
+  border: "#E2E8F0",      // bordas neutras
+  borderSoft: "#EEF2F7",  // divisórias bem suaves
+  text: "#0F172A",        // texto principal
+  text2: "#475569",       // texto secundário
+  muted: "#64748B",       // legendas
+  primary: "#2563EB",     // azul principal
+  primaryHover: "#1D4ED8",
+  primarySoft: "#EFF6FF", // azul clarinho (fundos/ativos leves)
+  danger: "#B91C1C",
+  dangerSoft: "#FEF2F2",
+  shadow: "0 12px 28px rgba(15, 23, 42, 0.10)",
+  shadowSoft: "0 6px 18px rgba(15, 23, 42, 0.08)",
+  successText: "#065F46",
+  successSoft: "#ECFDF5",
+};
+
 const styles = {
   page: {
     minHeight: "100vh",
-    backgroundColor: "#f5f7fb",
+    backgroundColor: theme.bg,
     padding: "32px 16px",
     fontFamily:
       "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    color: theme.text,
   },
+
   container: {
     maxWidth: "1100px",
     margin: "0 auto",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
+    backgroundColor: theme.surface,
+    borderRadius: "16px",
     padding: "32px 24px 24px",
-    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
+    boxShadow: theme.shadow,
+    border: `1px solid ${theme.borderSoft}`,
   },
+
   header: {
-    marginBottom: "24px",
+    marginBottom: "20px",
   },
+
   titulo: {
     fontSize: "2rem",
     marginBottom: "8px",
-    color: "#0f172a",
+    color: theme.text,
+    letterSpacing: "-0.02em",
   },
+
   subtitulo: {
-    color: "#475569",
+    color: theme.text2,
     fontSize: "0.95rem",
-    maxWidth: "720px",
+    maxWidth: "760px",
+    lineHeight: 1.4,
   },
+
+  // Tabs
   tabsRow: {
     display: "inline-flex",
     borderRadius: "999px",
-    backgroundColor: "#e5edff",
+    backgroundColor: "#EEF2FF",
     padding: "4px",
     marginBottom: "16px",
+    border: `1px solid ${theme.border}`,
+    gap: "6px",
   },
+
   tabButton: {
     border: "none",
     background: "transparent",
-    padding: "6px 16px",
+    padding: "8px 16px",
     borderRadius: "999px",
     cursor: "pointer",
     fontSize: "0.9rem",
-    color: "#4b5563",
-  },
-  tabButtonActive: {
-    backgroundColor: "#2563eb",
-    color: "#ffffff",
+    color: theme.text2,
     fontWeight: 600,
-    boxShadow: "0 4px 10px rgba(37, 99, 235, 0.4)",
   },
+
+  tabButtonActive: {
+    backgroundColor: theme.primary,
+    color: "#ffffff",
+    fontWeight: 700,
+    boxShadow: "0 8px 18px rgba(37, 99, 235, 0.28)",
+  },
+
+  // Form
   formSection: {
-    marginBottom: "24px",
+    marginBottom: "18px",
   },
+
   label: {
     display: "block",
-    fontWeight: 600,
+    fontWeight: 700,
     marginBottom: "8px",
-    color: "#1f2933",
+    color: theme.text,
   },
+
   formRow: {
     display: "flex",
-    gap: "8px",
+    gap: "10px",
     alignItems: "center",
     marginBottom: "8px",
   },
+
   input: {
     flex: 1,
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: "1px solid #cbd5e1",
+    padding: "12px 12px",
+    borderRadius: "12px",
+    border: `1px solid ${theme.border}`,
     fontSize: "0.95rem",
+    outline: "none",
+    backgroundColor: "#fff",
+    color: theme.text,
   },
+
   button: {
-    padding: "10px 18px",
-    borderRadius: "8px",
+    padding: "12px 18px",
+    borderRadius: "12px",
     border: "none",
-    backgroundColor: "#2563eb",
+    backgroundColor: theme.primary,
     color: "#ffffff",
-    fontWeight: 600,
+    fontWeight: 800,
     cursor: "pointer",
+    boxShadow: "0 10px 18px rgba(37, 99, 235, 0.20)",
   },
+
   info: {
     fontSize: "0.9rem",
-    color: "#475569",
-    marginTop: "4px",
+    color: theme.text2,
+    marginTop: "6px",
   },
+
   erro: {
     fontSize: "0.9rem",
-    color: "#b91c1c",
-    marginTop: "4px",
+    color: theme.danger,
+    marginTop: "6px",
+    backgroundColor: theme.dangerSoft,
+    border: "1px solid #FECACA",
+    padding: "10px 12px",
+    borderRadius: "12px",
+    fontWeight: 700,
   },
+
+  // Resultados
   resultSection: {
-    marginTop: "24px",
+    marginTop: "18px",
   },
+
   resultTitle: {
     fontSize: "1.25rem",
     marginBottom: "12px",
-    color: "#0f172a",
+    color: theme.text,
+    letterSpacing: "-0.01em",
   },
+
   cardGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "16px",
+    gap: "14px",
   },
+
   card: {
-    borderRadius: "12px",
-    border: "1px solid #e2e8f0",
+    borderRadius: "14px",
+    border: `1px solid ${theme.border}`,
     padding: "16px 16px 12px",
-    backgroundColor: "#f9fafb",
+    backgroundColor: theme.surface,
+    boxShadow: theme.shadowSoft,
   },
+
   cardHeader: {
     marginBottom: "10px",
   },
+
   cardTitle: {
     fontSize: "1.05rem",
-    marginBottom: "2px",
-    color: "#0f172a",
+    marginBottom: "4px",
+    color: theme.text,
+    fontWeight: 800,
   },
+
   cardSubtitle: {
     fontSize: "0.9rem",
-    color: "#64748b",
+    color: theme.muted,
   },
+
   dl: {
     margin: 0,
     fontSize: "0.85rem",
   },
+
   dlRow: {
     display: "flex",
     justifyContent: "space-between",
-    gap: "8px",
-    padding: "4px 0",
-    borderBottom: "1px dashed #e2e8f0",
+    gap: "10px",
+    padding: "6px 0",
+    borderBottom: `1px dashed ${theme.borderSoft}`,
+    color: theme.text2,
   },
-  footer: {
-    marginTop: "24px",
-    borderTop: "1px solid #e5e7eb",
-    paddingTop: "12px",
-    textAlign: "right",
-    fontSize: "0.75rem",
-    color: "#94a3b8",
-  },
+
+  // Filtro por mês
   monthFilterRow: {
-    marginTop: "8px",
-    marginBottom: "8px",
+    marginTop: "10px",
+    marginBottom: "10px",
   },
+
   monthFilterLabel: {
     fontSize: "0.85rem",
-    color: "#4b5563",
+    color: theme.text2,
     marginRight: "8px",
     display: "block",
-    marginBottom: "4px",
+    marginBottom: "6px",
+    fontWeight: 700,
   },
+
   monthButtonsContainer: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "4px",
+    gap: "8px",
   },
+
   monthButton: {
     borderRadius: "999px",
-    border: "1px solid #cbd5e1",
+    border: `1px solid ${theme.border}`,
     backgroundColor: "#ffffff",
-    padding: "4px 10px",
-    fontSize: "0.8rem",
+    padding: "6px 12px",
+    fontSize: "0.82rem",
     cursor: "pointer",
-    color: "#4b5563",
+    color: theme.text2,
+    fontWeight: 700,
   },
+
   monthButtonActive: {
-    backgroundColor: "#2563eb",
-    color: "#ffffff",
-    borderColor: "#2563eb",
+    backgroundColor: theme.primarySoft, // ativo mais leve (melhor leitura)
+    color: theme.primaryHover,
+    borderColor: "rgba(37, 99, 235, 0.45)",
   },
+
   monthClearButton: {
     borderRadius: "999px",
     border: "none",
-    backgroundColor: "#e5e7eb",
-    padding: "4px 10px",
-    fontSize: "0.8rem",
+    backgroundColor: "#F1F5F9",
+    padding: "6px 12px",
+    fontSize: "0.82rem",
     cursor: "pointer",
-    color: "#374151",
-    marginLeft: "4px",
+    color: theme.text,
+    fontWeight: 800,
+  },
+
+  footer: {
+    marginTop: "24px",
+    borderTop: `1px solid ${theme.borderSoft}`,
+    paddingTop: "12px",
+    textAlign: "right",
+    fontSize: "0.75rem",
+    color: "#94A3B8",
   },
 };
 
