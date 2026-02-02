@@ -194,6 +194,7 @@ function App() {
 
   const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
   const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
+  const [anoFiltro, setAnoFiltro] = useState(null); // ex: 2025, 2026
 
   useEffect(() => {
     async function carregar() {
@@ -282,8 +283,17 @@ function App() {
         );
       });
     }
+    // 3) filtro por ano
+    
+    if (anoFiltro) {
+      lista = lista.filter((p) => {
+        const data = parseDataBR(getPagDataPagamento(p));
+        if (!data) return false;
+        return data.getFullYear() === anoFiltro;
+      });
+    }
 
-    // 3) filtro por mês
+    // 4) filtro por mês
     if (mesFiltro) {
       lista = lista.filter((p) => {
         const data = parseDataBR(getPagDataPagamento(p));
@@ -293,7 +303,7 @@ function App() {
     }
 
     return lista;
-  }, [pagamentos, busca, mesFiltro]);
+  }, [pagamentos, busca, mesFiltro, anoFiltro]);
 
   const usandoContratos = tipoConsulta === "contratos";
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
@@ -321,6 +331,7 @@ function App() {
             onClick={() => {
               setTipoConsulta("contratos");
               setMesFiltro(null);
+              setAnoFiltro(null);
             }}
             style={{
               ...styles.tabButton,
@@ -396,6 +407,41 @@ function App() {
                 <button
                   type="button"
                   onClick={() => setMesFiltro(null)}
+                  style={styles.monthClearButton}
+                >
+                  Limpar
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Filtro por ano – aparece só na aba Pagamentos */}
+          {!usandoContratos && (
+            <div style={styles.monthFilterRow}>
+              <span style={styles.monthFilterLabel}>
+                Filtrar por ano:
+              </span>
+          
+              <div style={styles.monthButtonsContainer}>
+                {[2025, 2026].map((ano) => (
+                  <button
+                    key={ano}
+                    type="button"
+                    onClick={() =>
+                      setAnoFiltro(anoFiltro === ano ? null : ano)
+                    }
+                    style={{
+                      ...styles.monthButton,
+                      ...(anoFiltro === ano ? styles.monthButtonActive : {}),
+                    }}
+                  >
+                    {ano}
+                  </button>
+                ))}
+          
+                <button
+                  type="button"
+                  onClick={() => setAnoFiltro(null)}
                   style={styles.monthClearButton}
                 >
                   Limpar
