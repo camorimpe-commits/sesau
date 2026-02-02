@@ -293,7 +293,7 @@ function App() {
     }
 
     return lista;
-  }, [pagamentos, busca, mesFiltro, anoFiltro]);
+  }, [pagamentos, busca, mesFiltro]);
 
   const usandoContratos = tipoConsulta === "contratos";
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
@@ -404,41 +404,7 @@ function App() {
             </div>
           )}
           
-          {/* Filtro por ano – aparece só na aba Pagamentos */}
-          {!usandoContratos && (
-            <div style={styles.monthFilterRow}>
-              <span style={styles.monthFilterLabel}>
-                Filtrar por ano:
-              </span>
           
-              <div style={styles.monthButtonsContainer}>
-                {[2025, 2026].map((ano) => (
-                  <button
-                    key={ano}
-                    type="button"
-                    onClick={() =>
-                      setAnoFiltro(anoFiltro === ano ? null : ano)
-                    }
-                    style={{
-                      ...styles.monthButton,
-                      ...(anoFiltro === ano ? styles.monthButtonActive : {}),
-                    }}
-                  >
-                    {ano}
-                  </button>
-                ))}
-          
-                <button
-                  type="button"
-                  onClick={() => setAnoFiltro(null)}
-                  style={styles.monthClearButton}
-                >
-                  Limpar
-                </button>
-              </div>
-            </div>
-          )}
-
           {carregando && (
             <p style={styles.info}>
               Carregando {usandoContratos ? "contratos" : "pagamentos"}...
