@@ -282,17 +282,8 @@ function App() {
         );
       });
     }
-    // 3) filtro por ano
-    
-    if (anoFiltro) {
-      lista = lista.filter((p) => {
-        const data = parseDataBR(getPagDataPagamento(p));
-        if (!data) return false;
-        return data.getFullYear() === anoFiltro;
-      });
-    }
 
-    // 4) filtro por mês
+    // 3) filtro por mês
     if (mesFiltro) {
       lista = lista.filter((p) => {
         const data = parseDataBR(getPagDataPagamento(p));
@@ -330,7 +321,6 @@ function App() {
             onClick={() => {
               setTipoConsulta("contratos");
               setMesFiltro(null);
-              setAnoFiltro(null);
             }}
             style={{
               ...styles.tabButton,
