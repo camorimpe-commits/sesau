@@ -194,7 +194,6 @@ function App() {
 
   const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
   const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
-  const [anoFiltro, setAnoFiltro] = useState(null); // ex: 2025, 2026
 
   useEffect(() => {
     async function carregar() {
