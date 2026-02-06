@@ -596,7 +596,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
 
         <footer style={styles.footer}>
           <small>
-            SESAU Recife – Consulta pública de contratos e pagamentos · Dados
+            SESAU Recife – Consulta de contratos e pagamentos · Dados
             provenientes de planilhas oficiais da Secretaria de Saúde.
           </small>
         </footer>
