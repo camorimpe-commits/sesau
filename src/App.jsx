@@ -51,6 +51,18 @@ function parseDataBR(str) {
   if (!dia || !mes || !ano) return null;
   return new Date(ano, mes - 1, dia);
 }
+// Converte valor monetário BR (ex: "360.192,26") em número
+function parseValorBR(valor) {
+  if (!valor) return 0;
+  return (
+    Number(
+      valor
+        .toString()
+        .replace(/\./g, "")
+        .replace(",", ".")
+    ) || 0
+  );
+}
 
 // ================== MAPEAMENTO – CONTRATOS ================== //
 
@@ -295,6 +307,13 @@ function App() {
     return lista;
   }, [pagamentos, busca, mesFiltro]);
 
+        const totalValorPagamentos = useMemo(() => {
+        return resultadosPagamentos.reduce((soma, p) => {
+          return soma + parseValorBR(getPagValorPagamento(p));
+        }, 0);
+      }, [resultadosPagamentos]);
+
+
   const usandoContratos = tipoConsulta === "contratos";
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
   const erro = usandoContratos ? erroContratos : erroPagamentos;
@@ -416,7 +435,17 @@ function App() {
               {usandoContratos ? "Contratos" : "Registros de pagamento"}{" "}
               carregados da planilha: <strong>{totalRegistros}</strong>
             </p>
-          )}
+            <p style={{ ...styles.info, fontWeight: 800 }}>
+      Valor total dos pagamentos exibidos:{" "}
+      <span style={{ color: theme.primary }}>
+        R$ {totalValorPagamentos.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}
+      </span>
+    </p>
+  </div>
+)}
+          
 
           {erro && <p style={styles.erro}>{erro}</p>}
 
