@@ -324,11 +324,11 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={styles.header}>
-          <h1 style={styles.titulo}>SESAU – Consulta de Contratos Públicos</h1>
+          <h1 style={styles.titulo}>SEAF – Conecta</h1>
           <p style={styles.subtitulo}>
             Digite o número do contrato, documento ou o nome da
-            entidade/empresa para consultar informações oficiais de contratos e
-            pagamentos da Secretaria de Saúde do Recife.
+            entidade/empresa para consultar contratos e
+            pagamentos da SEAF/SESAU.
           </p>
         </header>
 
