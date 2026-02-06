@@ -306,14 +306,17 @@ function App() {
 
     return lista;
   }, [pagamentos, busca, mesFiltro]);
-
-        const totalValorPagamentos = useMemo(() => {
+  
+// ---------- TOTAL DO VALOR DOS PAGAMENTOS (FILTRADOS) ---------- //
+  
+      const totalValorPagamentos = useMemo(() => {
         return resultadosPagamentos.reduce((soma, p) => {
           return soma + parseValorBR(getPagValorPagamento(p));
         }, 0);
       }, [resultadosPagamentos]);
 
-
+// ---------- CONTROLES GERAIS ---------- //
+  
   const usandoContratos = tipoConsulta === "contratos";
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
   const erro = usandoContratos ? erroContratos : erroPagamentos;
