@@ -269,58 +269,54 @@ function App() {
   // ---------- BUSCA + ORDEM + FILTRO – PAGAMENTOS ---------- //
 
   const resultadosPagamentos = useMemo(() => {
-    // 1) ordena por Data Pagamento (mais recente primeiro)
-    let lista = [...pagamentos].sort((a, b) => {
-      const da = parseDataBR(getPagDataPagamento(a));
-      const db = parseDataBR(getPagDataPagamento(b));
-      if (!da && !db) return 0;
-      if (!da) return 1; // sem data vai para o final
-      if (!db) return -1;
-      return db - da; // desc
+  let lista = [...pagamentos].sort((a, b) => {
+    const da = parseDataBR(getPagDataPagamento(a));
+    const db = parseDataBR(getPagDataPagamento(b));
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return db - da;
+  });
+
+  const termo = busca.trim().toLowerCase();
+
+  if (termo) {
+    lista = lista.filter((p) => {
+      const credor = getPagCredor(p).toLowerCase();
+      const docOB = getPagDocumentoOB(p).toLowerCase();
+      const docFiscal = getPagNumeroDocFiscal(p).toLowerCase();
+      return (
+        credor.includes(termo) ||
+        docOB.includes(termo) ||
+        docFiscal.includes(termo)
+      );
     });
+  }
 
-    const termo = busca.trim().toLowerCase();
+  if (mesFiltro) {
+    lista = lista.filter((p) => {
+      const data = parseDataBR(getPagDataPagamento(p));
+      return data && data.getMonth() + 1 === mesFiltro;
+    });
+  }
 
-    // 2) filtro de texto
-    if (termo) {
-      lista = lista.filter((p) => {
-        const credor = getPagCredor(p).toLowerCase();
-        const docOB = getPagDocumentoOB(p).toLowerCase();
-        const docFiscal = getPagNumeroDocFiscal(p).toLowerCase();
-        return (
-          credor.includes(termo) ||
-          docOB.includes(termo) ||
-          docFiscal.includes(termo)
-        );
-      });
-    }
+  return lista;
+}, [pagamentos, busca, mesFiltro]);
 
-    // 3) filtro por mês
-    if (mesFiltro) {
-      lista = lista.filter((p) => {
-        const data = parseDataBR(getPagDataPagamento(p));
-        if (!data) return false;
-        return data.getMonth() + 1 === mesFiltro; // getMonth 0–11
-      });
-    }
-
-    return lista;
-  }, [pagamentos, busca, mesFiltro]);
-  
 // ---------- TOTAL DO VALOR DOS PAGAMENTOS (FILTRADOS) ---------- //
-  
-      const totalValorPagamentos = useMemo(() => {
-        return resultadosPagamentos.reduce((soma, p) => {
-          return soma + parseValorBR(getPagValorPagamento(p));
-        }, 0);
-      }, [resultadosPagamentos]);
+
+const totalValorPagamentos = useMemo(() => {
+  return resultadosPagamentos.reduce((soma, p) => {
+    return soma + parseValorBR(getPagValorPagamento(p));
+  }, 0);
+}, [resultadosPagamentos]);
 
 // ---------- CONTROLES GERAIS ---------- //
-  
-  const usandoContratos = tipoConsulta === "contratos";
-  const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
-  const erro = usandoContratos ? erroContratos : erroPagamentos;
-  const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
+
+const usandoContratos = tipoConsulta === "contratos";
+const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
+const erro = usandoContratos ? erroContratos : erroPagamentos;
+const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
 
   // ================== RENDER ================== //
 
@@ -434,19 +430,24 @@ function App() {
           )}
 
           {!carregando && !erro && (
-            <p style={styles.info}>
-              {usandoContratos ? "Contratos" : "Registros de pagamento"}{" "}
-              carregados da planilha: <strong>{totalRegistros}</strong>
-            </p>
-            <p style={{ ...styles.info, fontWeight: 800 }}>
-      Valor total dos pagamentos exibidos:{" "}
-      <span style={{ color: theme.primary }}>
-        R$ {totalValorPagamentos.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}
-      </span>
+  <>
+    <p style={styles.info}>
+      {usandoContratos ? "Contratos" : "Registros de pagamento"} carregados:{" "}
+      <strong>{totalRegistros}</strong>
     </p>
-  </div>
+
+    {!usandoContratos && (
+      <p style={{ ...styles.info, fontWeight: 800 }}>
+        Valor total dos pagamentos exibidos:{" "}
+        <span style={{ color: theme.primary }}>
+          R${" "}
+          {totalValorPagamentos.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+          })}
+        </span>
+      </p>
+    )}
+  </>
 )}
           
 
