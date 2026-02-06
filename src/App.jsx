@@ -326,9 +326,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
         <header style={styles.header}>
           <h1 style={styles.titulo}>SEAF – Conecta</h1>
           <p style={styles.subtitulo}>
-            Digite o número do contrato, documento ou o nome da
-            entidade/empresa para consultar contratos e
-            pagamentos da SEAF/SESAU.
+            Consulta e análise dos contratos e pagamentos da SEAF/SESAU.
           </p>
         </header>
 
