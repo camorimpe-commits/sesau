@@ -11,9 +11,9 @@ info:
   version: 1.0.0
   contact:
     name: SESAU Recife
-    description: Secretaria de Saúde do Recife
+    url: https://www.recife.pe.gov.br
   license:
-    name: Uso público institucional
+    name: Uso institucional público
 
 servers:
   - url: https://SEU-DOMINIO.vercel.app/api
@@ -25,20 +25,19 @@ tags:
   - name: Pagamentos
     description: Consulta de pagamentos realizados
   - name: ARP
-    description: Monitoramento de Atas de Registro de Preços (ARP / ARP_MMH)
+    description: Monitoramento de Atas de Registro de Preços
 
 paths:
 
   /contratos:
     get:
-      tags: [Contratos]
-      summary: Listar contratos
-      description: Retorna a lista de contratos administrativos cadastrados.
+      tags:
+        - Contratos
+      summary: Listar contratos administrativos
+      description: Retorna contratos com filtro opcional por credor ou número.
       parameters:
-        - name: search
+        - name: busca
           in: query
-          description: Número do contrato ou nome do credor
-          required: false
           schema:
             type: string
       responses:
@@ -47,31 +46,23 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Contrato'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contrato'
 
   /pagamentos:
     get:
-      tags: [Pagamentos]
-      summary: Listar pagamentos
-      description: Retorna pagamentos realizados, com filtros por credor, documento e mês.
+      tags:
+        - Pagamentos
+      summary: Listar pagamentos realizados
+      description: Retorna pagamentos com filtros por credor e mês.
       parameters:
-        - name: search
+        - name: busca
           in: query
-          description: Nome do credor, Documento OB ou Nº Doc Fiscal
-          required: false
           schema:
             type: string
         - name: mes
           in: query
-          description: Mês do pagamento (1–12)
-          required: false
           schema:
             type: integer
             minimum: 1
@@ -82,37 +73,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  total_registros:
-                    type: integer
-                  valor_total:
-                    type: number
-                    format: double
-                    example: 1250000.75
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Pagamento'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pagamento'
 
   /arp:
     get:
-      tags: [ARP]
-      summary: Listar Atas de Registro de Preços (ARP)
-      description: |
-        Retorna dados de monitoramento das Atas de Registro de Preços (ARP),
-        incluindo vigência, status, quantidades licitadas, recebidas e saldo.
+      tags:
+        - ARP
+      summary: Listar Atas de Registro de Preços
+      description: Retorna ARPs vigentes e encerradas.
       parameters:
-        - name: item
+        - name: busca
           in: query
-          description: Nome do item
-          required: false
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: Status da vigência (VIGENTE, VENCIDA, A VENCER)
-          required: false
           schema:
             type: string
       responses:
@@ -121,14 +94,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ARP'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ARP'
 
 components:
   schemas:
@@ -138,96 +106,49 @@ components:
       properties:
         credor:
           type: string
-          example: PERNAMBUCO CONSERVADORA
-        numero_contrato:
+        numeroContrato:
           type: string
-          example: "4801.0075/2020"
         executiva:
           type: string
-          example: SEAF
         gestor:
           type: string
-          example: RUBEM GUILHERME
-        inicio_vigencia:
+        inicioVigencia:
           type: string
-          example: "10/04/2025"
-        fim_vigencia:
+        fimVigencia:
           type: string
-          example: "09/04/2026"
-        valor_total:
+        valorTotal:
           type: string
-          example: "1.557.330,96"
-        valor_mensal:
+        valorMensal:
           type: string
-          example: "129.777,58"
-        termo_atual:
+        statusVigencia:
           type: string
-          example: "6"
-        dias_para_vencimento:
-          type: string
-          example: "66"
-        status_vigencia:
-          type: string
-          example: VIGENTE
-        mais_recente:
-          type: string
-          example: Sim
 
     Pagamento:
       type: object
       properties:
-        credor:
-          type: string
-          example: TICKET SOLUÇÕES HDFGT S/A
-        documento_ob:
-          type: string
-          example: 2026OB000331
         fonte:
           type: string
-          example: 500-RECURSOS NÃO VINCULADOS DE IMPOSTOS
-        valor_pagamento:
+        credor:
           type: string
-          example: "360.192,26"
-        numero_doc_fiscal:
+        valorPagamento:
           type: string
-          example: "51467709"
-        data_pagamento:
+        documentoOB:
           type: string
-          example: "05/02/2026"
+        numeroDocFiscal:
+          type: string
+        dataPagamento:
+          type: string
 
     ARP:
       type: object
       properties:
-        item:
+        numeroAta:
           type: string
-          example: LUVA DE PROCEDIMENTO
-        numero_ata:
+        fornecedor:
           type: string
-          example: "ARP-012/2025"
-        vigencia_ata:
+        inicioVigencia:
           type: string
-          example: "01/01/2025 a 31/12/2025"
-        dias:
+        fimVigencia:
           type: string
-          example: "120"
-        status_vigencia:
+        status:
           type: string
-          example: VIGENTE
-        sei_processo:
-          type: string
-          example: "SEI 1234567-8"
-        total_licitado:
-          type: number
-          example: 100000
-        total_recebido:
-          type: number
-          example: 65000
-        saldo_a_receber:
-          type: number
-          example: 35000
-        nota_fiscal:
-          type: string
-          example: "NF-987654"
-        data_recebimento:
-          type: string
-          example: "15/03/2025"
