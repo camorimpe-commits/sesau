@@ -1,20 +1,20 @@
 {
   "name": "sesau-contratos",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "lucide-react": "^0.555.0",
     "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "recharts": "^2.8.0",
+    "recharts": "^2.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
