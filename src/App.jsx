@@ -1,5 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import Papa from "papaparse";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
 // ================== URLs DAS PLANILHAS ================== //
 
@@ -311,6 +320,31 @@ const totalValorPagamentos = useMemo(() => {
   }, 0);
 }, [resultadosPagamentos]);
 
+  // ---------- TOTAL POR MÊS (RESPEITANDO FILTROS E BUSCA) ---------- //
+
+const totalPorMes = useMemo(() => {
+  const mapa = {};
+
+  resultadosPagamentos.forEach((p) => {
+    const data = parseDataBR(getPagDataPagamento(p));
+    if (!data) return;
+
+    const mes = data.getMonth() + 1;
+    const valor = parseValorBR(getPagValorPagamento(p));
+
+    if (!mapa[mes]) {
+      mapa[mes] = 0;
+    }
+
+    mapa[mes] += valor;
+  });
+
+  return MESES.map((m) => ({
+    mes: m.label,
+    valor: mapa[m.num] || 0,
+  }));
+}, [resultadosPagamentos]);
+
 // ---------- CONTROLES GERAIS ---------- //
 
 const usandoContratos = tipoConsulta === "contratos";
@@ -461,6 +495,51 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
         {/* Resultados – CONTRATOS */}
         {resultados.length > 0 && usandoContratos && (
           <section style={styles.resultSection}>
+            {/* GRÁFICO – EVOLUÇÃO MENSAL */}
+<div style={{ marginBottom: "28px" }}>
+  <h2 style={styles.resultTitle}>
+    Evolução mensal dos pagamentos
+  </h2>
+
+  <div
+    style={{
+      width: "100%",
+      height: 340,
+      backgroundColor: "#ffffff",
+      borderRadius: "14px",
+      padding: "16px",
+      border: `1px solid ${theme.border}`,
+      boxShadow: theme.shadowSoft,
+    }}
+  >
+    <ResponsiveContainer>
+      <LineChart data={totalPorMes}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="mes" />
+        <YAxis
+          tickFormatter={(value) =>
+            `R$ ${value.toLocaleString("pt-BR")}`
+          }
+        />
+        <Tooltip
+          formatter={(value) =>
+            `R$ ${value.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}`
+          }
+        />
+        <Line
+          type="monotone"
+          dataKey="valor"
+          stroke="#2563EB"
+          strokeWidth={3}
+          dot={{ r: 4 }}
+          activeDot={{ r: 7 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+</div>
             <h2 style={styles.resultTitle}>
               Resultados ({resultados.length} contrato
               {resultados.length > 1 ? "s" : ""})
