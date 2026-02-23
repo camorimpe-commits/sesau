@@ -495,52 +495,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
         {/* Resultados – CONTRATOS */}
         {resultados.length > 0 && usandoContratos && (
           <section style={styles.resultSection}>
-            {/* GRÁFICO – EVOLUÇÃO MENSAL */}
-<div style={{ marginBottom: "28px" }}>
-  <h2 style={styles.resultTitle}>
-    Evolução mensal dos pagamentos
-  </h2>
-
-  <div
-    style={{
-      width: "100%",
-      height: 340,
-      backgroundColor: "#ffffff",
-      borderRadius: "14px",
-      padding: "16px",
-      border: `1px solid ${theme.border}`,
-      boxShadow: theme.shadowSoft,
-    }}
-  >
-    <ResponsiveContainer>
-      <LineChart data={totalPorMes}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="mes" />
-        <YAxis
-          tickFormatter={(value) =>
-            `R$ ${value.toLocaleString("pt-BR")}`
-          }
-        />
-        <Tooltip
-          formatter={(value) =>
-            `R$ ${value.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-            })}`
-          }
-        />
-        <Line
-          type="monotone"
-          dataKey="valor"
-          stroke="#2563EB"
-          strokeWidth={3}
-          dot={{ r: 4 }}
-          activeDot={{ r: 7 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-</div>
-            <h2 style={styles.resultTitle}>
+              <h2 style={styles.resultTitle}>
               Resultados ({resultados.length} contrato
               {resultados.length > 1 ? "s" : ""})
             </h2>
@@ -623,6 +578,58 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
         {/* Resultados – PAGAMENTOS */}
         {resultados.length > 0 && !usandoContratos && (
           <section style={styles.resultSection}>
+            <section style={styles.resultSection}>
+
+  {/* GRÁFICO – EVOLUÇÃO MENSAL */}
+  <div style={{ marginBottom: "28px" }}>
+    <h2 style={styles.resultTitle}>
+      Evolução mensal dos pagamentos
+    </h2>
+
+    <div
+      style={{
+        width: "100%",
+        height: 340,
+        backgroundColor: "#ffffff",
+        borderRadius: "14px",
+        padding: "16px",
+        border: `1px solid ${theme.border}`,
+        boxShadow: theme.shadowSoft,
+      }}
+    >
+      <ResponsiveContainer>
+        <LineChart data={totalPorMes}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="mes" />
+          <YAxis
+            tickFormatter={(value) =>
+              `R$ ${value.toLocaleString("pt-BR")}`
+            }
+          />
+          <Tooltip
+            formatter={(value) =>
+              `R$ ${value.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+              })}`
+            }
+          />
+          <Line
+            type="monotone"
+            dataKey="valor"
+            stroke="#2563EB"
+            strokeWidth={3}
+            dot={{ r: 4 }}
+            activeDot={{ r: 7 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+  <h2 style={styles.resultTitle}>
+    Resultados ({resultados.length} pagamento
+    {resultados.length > 1 ? "s" : ""})
+  </h2>
             <h2 style={styles.resultTitle}>
               Resultados ({resultados.length} pagamento
               {resultados.length > 1 ? "s" : ""})
