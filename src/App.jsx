@@ -599,6 +599,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mes" />
                       <YAxis
+                        width={55}
                         tickFormatter={(value) => {
     if (value >= 1_000_000) {
       return `R$ ${(value / 1_000_000).toFixed(0)} mi`;
@@ -620,9 +621,9 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
                         type="monotone"
                         dataKey="valor"
                         stroke="#2563EB"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 7 }}
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 6 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
