@@ -599,16 +599,17 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="mes" />
                       <YAxis
-                        width={55}
+                        width={50}
                         tickFormatter={(value) => {
     if (value >= 1_000_000) {
-      return `R$ ${(value / 1_000_000).toFixed(0)} mi`;
+      return `${(value / 1_000_000).toFixed(0)} mi`;
     }
     if (value >= 1_000) {
-      return `R$ ${(value / 1_000).toFixed(0)} mil`;
+      return `${(value / 1_000).toFixed(0)} mil`;
     }
-    return `R$ ${value}`;
+    return `${value}`;
   }}
+  tick={{ fontSize: 11, fill: "6B7280" }}                      
 />
                       <Tooltip
                         formatter={(value) =>
