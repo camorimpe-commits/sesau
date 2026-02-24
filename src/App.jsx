@@ -585,8 +585,8 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
             
                 <div
                   style={{
-                    width: "60%",
-                    height: 240,
+                    width: "80%",
+                    height: 300,
                     backgroundColor: "#ffffff",
                     borderRadius: "14px",
                     padding: "16px",
