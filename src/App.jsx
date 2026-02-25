@@ -240,19 +240,22 @@ useEffect(() => {
   }
 
   async function carregarOrcamento() {
-    const resp = await fetch(SHEET_URL_ORCAMENTO);
-    if (!resp.ok) throw new Error("Erro ao buscar orçamento");
-    const texto = await resp.text();
-    const dados = parseCSV(texto);
+    async function carregarOrcamento() {
+  const resp = await fetch(SHEET_URL_ORCAMENTO);
+  if (!resp.ok) throw new Error("Erro ao buscar orçamento");
 
-    const somaOrcamento = dadosOrc.reduce((soma, linha) => {
-  return soma + parseValorBR(
-    buscarPorPalavrasChave(linha, ["dot", "atual"])
-  );
-}, 0);
+  const texto = await resp.text();
+  const dados = parseCSV(texto);
 
-    setOrcamentoTotal(soma);
-  }
+  const somaOrcamento = dados.reduce((soma, linha) => {
+    const valor = parseValorBR(
+      buscarPorPalavrasChave(linha, ["dot", "atual"])
+    );
+    return soma + valor;
+  }, 0);
+
+  setOrcamentoTotal(somaOrcamento);
+}
 
   async function carregarTudo() {
     try {
@@ -487,8 +490,16 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
 
     {!usandoContratos && (
       <p style={{ ...styles.info, fontWeight: 800 }}>
-        Valor total dos pagamentos exibidos:{" "}
-        {!usandoContratos && orcamentoTotal > 0 && (
+  Valor total dos pagamentos exibidos:{" "}
+  <span style={{ color: theme.primary }}>
+    R$ {totalValorPagamentos.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+    })}
+  </span>
+</p>
+
+{/* Execução Orçamentária */}
+{!usandoContratos && orcamentoTotal > 0 && (
   <div style={styles.execucaoContainer}>
     <div style={styles.execucaoHeader}>
       <span>Execução orçamentária 2026</span>
@@ -508,16 +519,10 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
 
     <div style={styles.execucaoValores}>
       <span>
-        Pago: R${" "}
-        {totalValorPagamentos.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}
+        Pago: R$ {totalValorPagamentos.toLocaleString("pt-BR")}
       </span>
       <span>
-        Orçamento: R${" "}
-        {orcamentoTotal.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}
+        Orçamento: R$ {orcamentoTotal.toLocaleString("pt-BR")}
       </span>
     </div>
   </div>
@@ -533,7 +538,6 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
   </>
 )}
           
-
           {erro && <p style={styles.erro}>{erro}</p>}
 
           {!carregando && !erro && busca && resultados.length === 0 && (
