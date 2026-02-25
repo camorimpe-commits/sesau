@@ -746,7 +746,6 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
         padding: "14px 16px",
         borderRadius: "14px",
         border: `1px solid ${theme.border}`,
-        backgroundColor: "#F9FAFB",
       },
       
       execucaoHeader: {
