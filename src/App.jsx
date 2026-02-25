@@ -245,9 +245,11 @@ useEffect(() => {
     const texto = await resp.text();
     const dados = parseCSV(texto);
 
-    const soma = dados.reduce((acc, linha) => {
-      return acc + parseValorBR(linha["Dot.Atual"]);
-    }, 0);
+    const somaOrcamento = dadosOrc.reduce((soma, linha) => {
+  return soma + parseValorBR(
+    buscarPorPalavrasChave(linha, ["dot", "atual"])
+  );
+}, 0);
 
     setOrcamentoTotal(soma);
   }
