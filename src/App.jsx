@@ -240,22 +240,18 @@ useEffect(() => {
   }
 
   async function carregarOrcamento() {
-    async function carregarOrcamento() {
-  const resp = await fetch(SHEET_URL_ORCAMENTO);
-  if (!resp.ok) throw new Error("Erro ao buscar orçamento");
+    const resp = await fetch(SHEET_URL_ORCAMENTO);
+    if (!resp.ok) throw new Error("Erro ao buscar orçamento");
+    const texto = await resp.text();
+    const dadosOrc = parseCSV(texto);
 
-  const texto = await resp.text();
-  const dados = parseCSV(texto);
+    const somaOrcamento = dadosOrc.reduce((soma, linha) => {
+      const valorDotAtual = buscarPorPalavrasChave(linha, ["dot", "atual"]);
+      return soma + parseValorBR(valorDotAtual);
+    }, 0);
 
-  const somaOrcamento = dados.reduce((soma, linha) => {
-    const valor = parseValorBR(
-      buscarPorPalavrasChave(linha, ["dot", "atual"])
-    );
-    return soma + valor;
-  }, 0);
-
-  setOrcamentoTotal(somaOrcamento);
-}
+    setOrcamentoTotal(somaOrcamento);
+  }
 
   async function carregarTudo() {
     try {
@@ -264,11 +260,26 @@ useEffect(() => {
       setErroPagamentos("");
 
       await carregarContratos();
-      await carregarPagamentos();
-      await carregarOrcamento();
 
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+      try {
+        await carregarPagamentos();
+      } catch (e) {
+        console.error("Erro ao carregar PAGAMENTOS:", e);
+        setErroPagamentos(
+          "Não foi possível carregar os pagamentos. Verifique a planilha 'nova_base'."
+        );
+      }
+
+      try {
+        await carregarOrcamento();
+      } catch (e) {
+        console.error("Erro ao carregar ORÇAMENTO:", e);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar CONTRATOS:", e);
+      setErroContratos(
+        "Não foi possível carregar os contratos. Verifique a planilha ou tente novamente mais tarde."
+      );
     } finally {
       setCarregando(false);
     }
@@ -489,42 +500,51 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
     </p>
 
     {!usandoContratos && (
-      <p style={{ ...styles.info, fontWeight: 800 }}>
-  Valor total dos pagamentos exibidos:{" "}
-  <span style={{ color: theme.primary }}>
-    R$ {totalValorPagamentos.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-    })}
-  </span>
-</p>
-
-{/* Execução Orçamentária */}
-{!usandoContratos && orcamentoTotal > 0 && (
-  <div style={styles.execucaoContainer}>
-    <div style={styles.execucaoHeader}>
-      <span>Execução orçamentária 2026</span>
-      <span style={{ fontWeight: 800 }}>
-        {percentualExecutado.toFixed(1)}%
+  <div style={{ marginTop: 6 }}>
+    <p style={{ ...styles.info, fontWeight: 800 }}>
+      Valor total dos pagamentos exibidos:{" "}
+      <span style={{ color: theme.primary }}>
+        R${" "}
+        {totalValorPagamentos.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}
       </span>
-    </div>
+    </p>
 
-    <div style={styles.progressBarBackground}>
-      <div
-        style={{
-          ...styles.progressBarFill,
-          width: `${Math.min(percentualExecutado, 100)}%`,
-        }}
-      />
-    </div>
+    {orcamentoTotal > 0 && (
+      <div style={styles.execucaoContainer}>
+        <div style={styles.execucaoHeader}>
+          <span>Execução orçamentária 2026</span>
+          <span style={{ fontWeight: 800 }}>
+            {percentualExecutado.toFixed(1)}%
+          </span>
+        </div>
 
-    <div style={styles.execucaoValores}>
-      <span>
-        Pago: R$ {totalValorPagamentos.toLocaleString("pt-BR")}
-      </span>
-      <span>
-        Orçamento: R$ {orcamentoTotal.toLocaleString("pt-BR")}
-      </span>
-    </div>
+        <div style={styles.progressBarBackground}>
+          <div
+            style={{
+              ...styles.progressBarFill,
+              width: `${Math.min(percentualExecutado, 100)}%`,
+            }}
+          />
+        </div>
+
+        <div style={styles.execucaoValores}>
+          <span>
+            Pago: R${" "}
+            {totalValorPagamentos.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+          <span>
+            Orçamento: R${" "}
+            {orcamentoTotal.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+      </div>
+    )}
   </div>
 )}
         <span style={{ color: theme.primary }}>
@@ -664,7 +684,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
     }
     return `${value}`;
   }}
-  tick={{ fontSize: 11, fill: "6B7280" }}                      
+  tick={{ fontSize: 11, fill: "#6B7280" }}                      
 />
                       <Tooltip
                         formatter={(value) =>
@@ -1040,6 +1060,6 @@ const styles = {
     marginTop: "6px",
     color: theme.text2,
   },
-  
-  };
+};
+
 export default App;
