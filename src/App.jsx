@@ -493,79 +493,55 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
           )}
 
           {!carregando && !erro && (
-  <>
+  <div>
     <p style={styles.info}>
       {usandoContratos ? "Contratos" : "Registros de pagamento"} carregados:{" "}
       <strong>{totalRegistros}</strong>
     </p>
 
     {!usandoContratos && (
-  <div style={{ marginTop: 6 }}>
-    <p style={{ ...styles.info, fontWeight: 800 }}>
-      Valor total dos pagamentos exibidos:{" "}
-      <span style={{ color: theme.primary }}>
-        R${" "}
-        {totalValorPagamentos.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}
-      </span>
-    </p>
-
-    {orcamentoTotal > 0 && (
-      <div style={styles.execucaoContainer}>
-        <div style={styles.execucaoHeader}>
-          <span>Execução orçamentária 2026</span>
-          <span style={{ fontWeight: 800 }}>
-            {percentualExecutado.toFixed(1)}%
-          </span>
-        </div>
-
-        <div style={styles.progressBarBackground}>
-          <div
-            style={{
-              ...styles.progressBarFill,
-              width: `${Math.min(percentualExecutado, 100)}%`,
-            }}
-          />
-        </div>
-
-        <div style={styles.execucaoValores}>
-          <span>
-            Pago: R${" "}
-            {totalValorPagamentos.toLocaleString("pt-BR", {
+      <div style={{ marginTop: 6 }}>
+        <p style={{ ...styles.info, fontWeight: 800 }}>
+          Valor total dos pagamentos exibidos:{" "}
+          <span style={{ color: theme.primary }}>
+            R$ {totalValorPagamentos.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
             })}
           </span>
-          <span>
-            Orçamento: R${" "}
-            {orcamentoTotal.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-            })}
-          </span>
-        </div>
+        </p>
+
+        {orcamentoTotal > 0 && (
+          <div style={styles.execucaoContainer}>
+            <div style={styles.execucaoHeader}>
+              <span>Execução orçamentária 2026</span>
+              <span style={{ fontWeight: 800 }}>
+                {percentualExecutado.toFixed(1)}%
+              </span>
+            </div>
+
+            <div style={styles.progressBarBackground}>
+              <div
+                style={{
+                  ...styles.progressBarFill,
+                  width: `${Math.min(percentualExecutado, 100)}%`,
+                }}
+              />
+            </div>
+
+            <div style={styles.execucaoValores}>
+              <span>
+                Pago: R$ {totalValorPagamentos.toLocaleString("pt-BR")}
+              </span>
+              <span>
+                Orçamento: R$ {orcamentoTotal.toLocaleString("pt-BR")}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     )}
   </div>
 )}
-        <span style={{ color: theme.primary }}>
-          R${" "}
-          {totalValorPagamentos.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-      </p>
-    )}
-  </>
-)}
-          
-          {erro && <p style={styles.erro}>{erro}</p>}
-
-          {!carregando && !erro && busca && resultados.length === 0 && (
-            <p style={styles.info}>
-              Nenhum resultado encontrado para a busca informada.
-            </p>
-          )}
-        </section>
 
         {/* Resultados – CONTRATOS */}
         {resultados.length > 0 && usandoContratos && (
