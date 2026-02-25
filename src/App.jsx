@@ -221,70 +221,55 @@ function App() {
   const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
 
 useEffect(() => {
-  async function carregar() {
+  async function carregarContratos() {
+    const resp = await fetch(SHEET_URL_CONTRATOS);
+    if (!resp.ok) throw new Error("Erro ao buscar contratos");
+    const texto = await resp.text();
+    const dados = parseCSV(texto);
+    setContratos(dados);
+    setTotalContratos(dados.length);
+  }
+
+  async function carregarPagamentos() {
+    const resp = await fetch(SHEET_URL_PAGAMENTOS);
+    if (!resp.ok) throw new Error("Erro ao buscar pagamentos");
+    const texto = await resp.text();
+    const dados = parseCSV(texto);
+    setPagamentos(dados);
+    setTotalPagamentos(dados.length);
+  }
+
+  async function carregarOrcamento() {
+    const resp = await fetch(SHEET_URL_ORCAMENTO);
+    if (!resp.ok) throw new Error("Erro ao buscar orçamento");
+    const texto = await resp.text();
+    const dados = parseCSV(texto);
+
+    const soma = dados.reduce((acc, linha) => {
+      return acc + parseValorBR(linha["Dot. Atual"]);
+    }, 0);
+
+    setOrcamentoTotal(soma);
+  }
+
+  async function carregarTudo() {
     try {
       setCarregando(true);
       setErroContratos("");
       setErroPagamentos("");
 
-      // ================= CONTRATOS =================
-      const respContratos = await fetch(SHEET_URL_CONTRATOS);
-      if (!respContratos.ok) {
-        throw new Error("Erro ao buscar dados da planilha de contratos");
-      }
-      const textoContratos = await respContratos.text();
-      const dadosContratos = parseCSV(textoContratos);
-      setContratos(dadosContratos);
-      setTotalContratos(dadosContratos.length);
+      await carregarContratos();
+      await carregarPagamentos();
+      await carregarOrcamento();
 
-      // ================= PAGAMENTOS =================
-      try {
-        const respPag = await fetch(SHEET_URL_PAGAMENTOS);
-        if (!respPag.ok) {
-          throw new Error("Erro ao buscar dados da planilha de pagamentos");
-        }
-        const textoPag = await respPag.text();
-        const dadosPag = parseCSV(textoPag);
-        setPagamentos(dadosPag);
-        setTotalPagamentos(dadosPag.length);
-      } catch (e) {
-        console.error("Erro ao carregar PAGAMENTOS:", e);
-        setErroPagamentos(
-          "Não foi possível carregar os pagamentos. Verifique a planilha 'nova_base'."
-        );
-      }
-
-      // ================= ORÇAMENTO =================
-      try {
-        const respOrc = await fetch(SHEET_URL_ORCAMENTO);
-        if (!respOrc.ok) {
-          throw new Error("Erro ao buscar planilha de orçamento");
-        }
-
-        const textoOrc = await respOrc.text();
-        const dadosOrc = parseCSV(textoOrc);
-
-        const somaOrcamento = dadosOrc.reduce((soma, linha) => {
-          return soma + parseValorBR(linha["Dot. Atual"]);
-        }, 0);
-
-        setOrcamentoTotal(somaOrcamento);
-
-      } catch (e) {
-        console.error("Erro ao carregar ORÇAMENTO:", e);
-      }
-
-    } catch (e) {
-      console.error("Erro ao carregar CONTRATOS:", e);
-      setErroContratos(
-        "Não foi possível carregar os contratos. Verifique a planilha ou tente novamente mais tarde."
-      );
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setCarregando(false);
     }
   }
 
-  carregar();
+  carregarTudo();
 }, []);
 
   // ---------- BUSCA CONTRATOS ---------- //
