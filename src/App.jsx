@@ -739,45 +739,7 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
     </div>
   );
 }
-
-// ================== STYLES ================== //
-      execucaoContainer: {
-        marginTop: "16px",
-        padding: "14px 16px",
-        borderRadius: "14px",
-        border: `1px solid ${theme.border}`,
-      },
-      
-      execucaoHeader: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "8px",
-        fontSize: "0.9rem",
-        color: theme.text,
-        fontWeight: 700,
-      },
-      
-      progressBarBackground: {
-        width: "100%",
-        height: "10px",
-        backgroundColor: "#E5E7EB",
-        borderRadius: "999px",
-        overflow: "hidden",
-      },
-      
-      progressBarFill: {
-        height: "100%",
-        backgroundColor: theme.primary,
-        transition: "width 0.6s ease",
-      },
-      
-      execucaoValores: {
-        display: "flex",
-        justifyContent: "space-between",
-        fontSize: "0.75rem",
-        marginTop: "6px",
-        color: theme.text2,
-      },
+     
 // ================== STYLES (ATUALIZADO) ================== //
 
 const theme = {
@@ -1037,6 +999,45 @@ const styles = {
     fontSize: "0.75rem",
     color: "#94A3B8",
   },
+  execucaoContainer: {
+  marginTop: "16px",
+  padding: "14px 16px",
+  borderRadius: "14px",
+  border: `1px solid ${theme.border}`,
+},
+
+execucaoHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: "8px",
+  fontSize: "0.9rem",
+  color: theme.text,
+  fontWeight: 700,
+},
+
+progressBarBackground: {
+  width: "100%",
+  height: "10px",
+  backgroundColor: "#E5E7EB",
+  borderRadius: "999px",
+  overflow: "hidden",
+},
+
+progressBarFill: {
+  height: "100%",
+  backgroundColor: theme.primary,
+  transition: "width 0.6s ease",
+},
+
+execucaoValores: {
+  display: "flex",
+  justifyContent: "space-between",
+  fontSize: "0.75rem",
+  marginTop: "6px",
+  color: theme.text2,
+},
+};
+  
 };
 
 export default App;
