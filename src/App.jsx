@@ -246,7 +246,7 @@ useEffect(() => {
     const dados = parseCSV(texto);
 
     const soma = dados.reduce((acc, linha) => {
-      return acc + parseValorBR(linha["Dot. Atual"]);
+      return acc + parseValorBR(linha["Dot.Atual"]);
     }, 0);
 
     setOrcamentoTotal(soma);
