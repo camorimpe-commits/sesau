@@ -1037,7 +1037,4 @@ execucaoValores: {
   color: theme.text2,
 },
 };
-  
-};
-
 export default App;
