@@ -220,65 +220,72 @@ function App() {
   const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
   const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
 
-  useEffect(() => {
-    async function carregar() {
-      try {
-        setCarregando(true);
-        setErroContratos("");
-        setErroPagamentos("");
+useEffect(() => {
+  async function carregar() {
+    try {
+      setCarregando(true);
+      setErroContratos("");
+      setErroPagamentos("");
 
-        // CONTRATOS
-        const respContratos = await fetch(SHEET_URL_CONTRATOS);
-        if (!respContratos.ok) {
-          throw new Error("Erro ao buscar dados da planilha de contratos");
-        }
-        const textoContratos = await respContratos.text();
-        const dadosContratos = parseCSV(textoContratos);
-        setContratos(dadosContratos);
-        setTotalContratos(dadosContratos.length);
-
-        // PAGAMENTOS
-        try {
-          const respPag = await fetch(SHEET_URL_PAGAMENTOS);
-          if (!respPag.ok) {
-            throw new Error("Erro ao buscar dados da planilha de pagamentos");
-          }
-          const textoPag = await respPag.text();
-          const dadosPag = parseCSV(textoPag);
-          setPagamentos(dadosPag);
-          setTotalPagamentos(dadosPag.length);
-        } catch (e) {
-          console.error("Erro ao carregar PAGAMENTOS:", e);
-          setErroPagamentos(
-            "Não foi possível carregar os pagamentos. Verifique a planilha 'nova_base'."
-          );
-        }
-      } catch (e) {
-        console.error("Erro ao carregar CONTRATOS:", e);
-        setErroContratos(
-          "Não foi possível carregar os contratos. Verifique a planilha ou tente novamente mais tarde."
-        );
-      } finally {
-        setCarregando(false);
+      // ================= CONTRATOS =================
+      const respContratos = await fetch(SHEET_URL_CONTRATOS);
+      if (!respContratos.ok) {
+        throw new Error("Erro ao buscar dados da planilha de contratos");
       }
-    }
-        // ORÇAMENTO
-        try {
-          const respOrc = await fetch(SHEET_URL_ORCAMENTO);
-          const textoOrc = await respOrc.text();
-          const dadosOrc = parseCSV(textoOrc);
-        
-          const somaOrcamento = dadosOrc.reduce((soma, linha) => {
-            const valor = parseValorBR(linha["Dot. Atual"]);
-            return soma + valor;
-          }, 0);
-        
-          setOrcamentoTotal(somaOrcamento);
-        } catch (e) {
-          console.error("Erro ao carregar ORÇAMENTO:", e);
+      const textoContratos = await respContratos.text();
+      const dadosContratos = parseCSV(textoContratos);
+      setContratos(dadosContratos);
+      setTotalContratos(dadosContratos.length);
+
+      // ================= PAGAMENTOS =================
+      try {
+        const respPag = await fetch(SHEET_URL_PAGAMENTOS);
+        if (!respPag.ok) {
+          throw new Error("Erro ao buscar dados da planilha de pagamentos");
         }
-    carregar();
-  }, []);
+        const textoPag = await respPag.text();
+        const dadosPag = parseCSV(textoPag);
+        setPagamentos(dadosPag);
+        setTotalPagamentos(dadosPag.length);
+      } catch (e) {
+        console.error("Erro ao carregar PAGAMENTOS:", e);
+        setErroPagamentos(
+          "Não foi possível carregar os pagamentos. Verifique a planilha 'nova_base'."
+        );
+      }
+
+      // ================= ORÇAMENTO =================
+      try {
+        const respOrc = await fetch(SHEET_URL_ORCAMENTO);
+        if (!respOrc.ok) {
+          throw new Error("Erro ao buscar planilha de orçamento");
+        }
+
+        const textoOrc = await respOrc.text();
+        const dadosOrc = parseCSV(textoOrc);
+
+        const somaOrcamento = dadosOrc.reduce((soma, linha) => {
+          return soma + parseValorBR(linha["Dot. Atual"]);
+        }, 0);
+
+        setOrcamentoTotal(somaOrcamento);
+
+      } catch (e) {
+        console.error("Erro ao carregar ORÇAMENTO:", e);
+      }
+
+    } catch (e) {
+      console.error("Erro ao carregar CONTRATOS:", e);
+      setErroContratos(
+        "Não foi possível carregar os contratos. Verifique a planilha ou tente novamente mais tarde."
+      );
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  carregar();
+}, []);
 
   // ---------- BUSCA CONTRATOS ---------- //
 
