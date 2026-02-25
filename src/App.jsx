@@ -18,6 +18,9 @@ const SHEET_URL_CONTRATOS =
 const SHEET_URL_PAGAMENTOS =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTMAJWBTMJTCZ6isLPAVkN4AUp23myTBn6-FCv-h2Ntu2H1qSaxtKPiO4GIDDbWedCO5-V6XEIgzThJ/pub?output=csv";
 
+const SHEET_URL_ORCAMENTO =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSqlXQBEGw9oZWtWSVeFbPQyI1mkb0pI30Ucv7Rp7d4P7IrSfvROXjWJJ9yRwmueme9tOl8g2T2bauM/pub?output=csv";
+
 // ================== FUNÇÕES AUXILIARES ================== //
 
 // Converte CSV em array de objetos usando PapaParse
@@ -204,6 +207,7 @@ const MESES = [
 function App() {
   const [contratos, setContratos] = useState([]);
   const [pagamentos, setPagamentos] = useState([]);
+  const [orcamentoTotal, setOrcamentoTotal] = useState(0);
 
   const [carregando, setCarregando] = useState(true);
   const [erroContratos, setErroContratos] = useState("");
@@ -258,7 +262,21 @@ function App() {
         setCarregando(false);
       }
     }
-
+        // ORÇAMENTO
+        try {
+          const respOrc = await fetch(SHEET_URL_ORCAMENTO);
+          const textoOrc = await respOrc.text();
+          const dadosOrc = parseCSV(textoOrc);
+        
+          const somaOrcamento = dadosOrc.reduce((soma, linha) => {
+            const valor = parseValorBR(linha["Dot. Atual"]);
+            return soma + valor;
+          }, 0);
+        
+          setOrcamentoTotal(somaOrcamento);
+        } catch (e) {
+          console.error("Erro ao carregar ORÇAMENTO:", e);
+        }
     carregar();
   }, []);
 
@@ -319,6 +337,11 @@ const totalValorPagamentos = useMemo(() => {
     return soma + parseValorBR(getPagValorPagamento(p));
   }, 0);
 }, [resultadosPagamentos]);
+  
+const percentualExecutado = useMemo(() => {
+  if (!orcamentoTotal) return 0;
+  return (totalValorPagamentos / orcamentoTotal) * 100;
+}, [totalValorPagamentos, orcamentoTotal]);
 
   // ---------- TOTAL POR MÊS (RESPEITANDO FILTROS E BUSCA) ---------- //
 
@@ -471,6 +494,40 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
     {!usandoContratos && (
       <p style={{ ...styles.info, fontWeight: 800 }}>
         Valor total dos pagamentos exibidos:{" "}
+        {!usandoContratos && orcamentoTotal > 0 && (
+  <div style={styles.execucaoContainer}>
+    <div style={styles.execucaoHeader}>
+      <span>Execução orçamentária 2026</span>
+      <span style={{ fontWeight: 800 }}>
+        {percentualExecutado.toFixed(1)}%
+      </span>
+    </div>
+
+    <div style={styles.progressBarBackground}>
+      <div
+        style={{
+          ...styles.progressBarFill,
+          width: `${Math.min(percentualExecutado, 100)}%`,
+        }}
+      />
+    </div>
+
+    <div style={styles.execucaoValores}>
+      <span>
+        Pago: R${" "}
+        {totalValorPagamentos.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}
+      </span>
+      <span>
+        Orçamento: R${" "}
+        {orcamentoTotal.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+        })}
+      </span>
+    </div>
+  </div>
+)}
         <span style={{ color: theme.primary }}>
           R${" "}
           {totalValorPagamentos.toLocaleString("pt-BR", {
@@ -690,7 +747,44 @@ const totalRegistros = usandoContratos ? totalContratos : totalPagamentos;
 }
 
 // ================== STYLES ================== //
-
+      execucaoContainer: {
+        marginTop: "16px",
+        padding: "14px 16px",
+        borderRadius: "14px",
+        border: `1px solid ${theme.border}`,
+        backgroundColor: "#F9FAFB",
+      },
+      
+      execucaoHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "8px",
+        fontSize: "0.9rem",
+        color: theme.text,
+        fontWeight: 700,
+      },
+      
+      progressBarBackground: {
+        width: "100%",
+        height: "10px",
+        backgroundColor: "#E5E7EB",
+        borderRadius: "999px",
+        overflow: "hidden",
+      },
+      
+      progressBarFill: {
+        height: "100%",
+        backgroundColor: theme.primary,
+        transition: "width 0.6s ease",
+      },
+      
+      execucaoValores: {
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: "0.75rem",
+        marginTop: "6px",
+        color: theme.text2,
+      },
 // ================== STYLES (ATUALIZADO) ================== //
 
 const theme = {
