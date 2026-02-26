@@ -406,8 +406,36 @@ function App() {
 
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
 
-  /* ================== KPIs / AGREGADOS ================== */
+  
 
+  /* ================== KPIs – CONTRATOS ================== */
+
+  const valorGlobalContratos = useMemo(() => {
+    return contratos.reduce((acc, c) => {
+      const valor = parseValorBR(getValorTotal(c));
+      return acc + valor;
+    }, 0);
+  }, [contratos]);
+  
+  const valorMensalContratos = useMemo(() => {
+    return contratos.reduce((acc, c) => {
+      const valor = parseValorBR(getValorMensal(c));
+      return acc + valor;
+    }, 0);
+  }, [contratos]);
+  
+  const contratosVencendo60Dias = useMemo(() => {
+    const hoje = new Date();
+    const limite = new Date();
+    limite.setDate(hoje.getDate() + 60);
+  
+    return contratos.filter((c) => {
+      const fim = parseDataBR(getFimVigencia(c));
+      return fim && fim >= hoje && fim <= limite;
+    }).length;
+  }, [contratos]);
+
+  
   const totalValorPagamentos = useMemo(() => {
     return resultadosPagamentos.reduce((acc, p) => {
       return acc + parseValorBR(getPagValorPagamento(p));
@@ -554,28 +582,52 @@ function App() {
             <>
               {/* KPIs rápidos (topo, “30 segundos”) */}
               <div style={styles.kpiRow}>
-                <StatPill
-                  label="Contratos carregados"
-                  value={String(totalContratos)}
-                />
-                <StatPill
-                  label="Pagamentos carregados"
-                  value={String(totalPagamentos)}
-                />
-                <StatPill
-                  label="Total pago (filtro atual)"
-                  value={`R$ ${formatBRL(totalValorPagamentos)}`}
-                  sub="Respeita busca e mês"
-                />
-                <StatPill
-                  label="Execução"
-                  value={
-                    orcamentoTotal > 0
-                      ? `${percentualExecutado.toFixed(1)}%`
-                      : "—"
-                  }
-                  sub={erroOrcamento ? "Orçamento indisponível" : "Pago/Orçamento"}
-                />
+                {usandoContratos ? (
+                  <>
+                    <StatPill
+                      label="Contratos carregados"
+                      value={String(totalContratos)}
+                    />
+              
+                    <StatPill
+                      label="Valor global dos contratos"
+                      value={`R$ ${formatBRL(valorGlobalContratos)}`}
+                    />
+              
+                    <StatPill
+                      label="Valor mensal estimado"
+                      value={`R$ ${formatBRL(valorMensalContratos)}`}
+                    />
+              
+                    <StatPill
+                      label="Vencendo em até 60 dias"
+                      value={String(contratosVencendo60Dias)}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <StatPill
+                      label="Pagamentos carregados"
+                      value={String(totalPagamentos)}
+                    />
+              
+                    <StatPill
+                      label="Total pago (filtro atual)"
+                      value={`R$ ${formatBRL(totalValorPagamentos)}`}
+                      sub="Respeita busca e mês"
+                    />
+              
+                    <StatPill
+                      label="Execução"
+                      value={
+                        orcamentoTotal > 0
+                          ? `${percentualExecutado.toFixed(1)}%`
+                          : "—"
+                      }
+                      sub={erroOrcamento ? "Orçamento indisponível" : "Pago/Orçamento"}
+                    />
+                  </>
+                )}
               </div>
 
               {/* Execução Orçamentária (barra) apenas na aba Pagamentos */}
