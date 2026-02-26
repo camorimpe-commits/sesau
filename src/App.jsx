@@ -585,7 +585,7 @@ function App() {
                 {usandoContratos ? (
                   <>
                     <StatPill
-                      label="Contratos carregados"
+                      label="Contratos vigentes"
                       value={String(totalContratos)}
                     />
               
