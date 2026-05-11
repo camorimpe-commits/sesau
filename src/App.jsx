@@ -212,6 +212,8 @@ const MESES = [
   { num: 12, label: "Dez" },
 ];
 
+const ANOS_PAGAMENTO = [2025, 2026];
+
 /* ================== UI COMPONENTES (NO MESMO ARQUIVO) ================== */
 
 function StatPill({ label, value, sub }) {
@@ -266,7 +268,8 @@ function App() {
   const [busca, setBusca] = useState("");
   const [tipoConsulta, setTipoConsulta] = useState("contratos"); // "contratos" | "pagamentos"
   const [mesFiltro, setMesFiltro] = useState(null); // 1–12 ou null
-
+  const [anoFiltro, setAnoFiltro] = useState(null); // 2025, 2026 ou null
+  
   // Carregamento (refatorado e com erros separados)
   useEffect(() => {
     let ativo = true;
@@ -401,8 +404,15 @@ function App() {
       });
     }
 
-    return lista;
-  }, [pagamentos, busca, mesFiltro]);
+    if (anoFiltro) {
+      lista = lista.filter((p) => {
+        const data = parseDataBR(getPagDataPagamento(p));
+        return data && data.getFullYear() === anoFiltro;
+      });
+    }
+
+return lista;
+}, [pagamentos, busca, mesFiltro, anoFiltro]);
 
   const resultados = usandoContratos ? resultadosContratos : resultadosPagamentos;
 
@@ -485,6 +495,7 @@ function App() {
             onClick={() => {
               setTipoConsulta("contratos");
               setMesFiltro(null);
+              setAnoFiltro(null);
             }}
             style={{
               ...styles.tabButton,
@@ -536,33 +547,66 @@ function App() {
             </button>
           </div>
 
-          {/* Filtro por mês (Pagamentos) */}
+          {/* Filtros por mês e ano (Pagamentos) */}
           {!usandoContratos && (
-            <div style={styles.monthFilterRow}>
-              <span style={styles.monthFilterLabel}>
-                Filtrar por mês de pagamento:
-              </span>
-              <div style={styles.monthButtonsContainer}>
-                {MESES.map((m) => (
+            <div style={styles.paymentFiltersRow}>
+              <div>
+                <span style={styles.monthFilterLabel}>
+                  Filtrar por mês de pagamento:
+                </span>
+          
+                <div style={styles.monthButtonsContainer}>
+                  {MESES.map((m) => (
+                    <button
+                      key={m.num}
+                      type="button"
+                      onClick={() =>
+                        setMesFiltro((prev) => (prev === m.num ? null : m.num))
+                      }
+                      style={{
+                        ...styles.monthButton,
+                        ...(mesFiltro === m.num ? styles.monthButtonActive : {}),
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+          
+              <div style={styles.yearFilterBox}>
+                <span style={styles.monthFilterLabel}>
+                  Filtrar por ano:
+                </span>
+          
+                <div style={styles.monthButtonsContainer}>
+                  {ANOS_PAGAMENTO.map((ano) => (
+                    <button
+                      key={ano}
+                      type="button"
+                      onClick={() =>
+                        setAnoFiltro((prev) => (prev === ano ? null : ano))
+                      }
+                      style={{
+                        ...styles.monthButton,
+                        ...(anoFiltro === ano ? styles.monthButtonActive : {}),
+                      }}
+                    >
+                      {ano}
+                    </button>
+                  ))}
+          
                   <button
-                    key={m.num}
                     type="button"
-                    onClick={() => setMesFiltro((prev) => (prev === m.num ? null : m.num))}
-                    style={{
-                      ...styles.monthButton,
-                      ...(mesFiltro === m.num ? styles.monthButtonActive : {}),
+                    onClick={() => {
+                      setMesFiltro(null);
+                      setAnoFiltro(null);
                     }}
+                    style={styles.monthClearButton}
                   >
-                    {m.label}
+                    Limpar
                   </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setMesFiltro(null)}
-                  style={styles.monthClearButton}
-                >
-                  Limpar
-                </button>
+                </div>
               </div>
             </div>
           )}
@@ -614,7 +658,7 @@ function App() {
                     <StatPill
                       label="Total pago (filtro atual)"
                       value={`R$ ${formatBRL(totalValorPagamentos)}`}
-                      sub="Respeita busca e mês"
+                      sub="Respeita busca, mês e ano"
                     />
               
                     <StatPill
@@ -932,6 +976,20 @@ const styles = {
   },
 
   monthFilterRow: { marginTop: 8, marginBottom: 10 },
+
+  paymentFiltersRow: {
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 18,
+    flexWrap: "wrap",
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  
+  yearFilterBox: {
+    marginLeft: "auto",
+  },
 
   monthFilterLabel: {
     fontSize: "0.85rem",
